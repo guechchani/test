@@ -1,0 +1,43 @@
+git add <filename>
+git commit -m "Added <filename>"
+git push
+
+distance_not_updated_simulations = pd.read_csv("C:\MEMW\Kaombo_20_analysis\distance_calculations\distance_not_updated_simulations_.csv")
+distance_not_updated_simulations
+
+import dash
+from dash import dcc
+from dash import html
+from dash.dependencies import Input, Output
+
+
+# Define the simulations to be plotted
+simulations = ['Kaombo_{}_{}'.format(i, j) for i in range(1, 2) for j in range(1, 2)]
+
+# Create the Dash app
+app = dash.Dash(__name__)
+
+# Define the layout of the app
+app.layout = html.Div(children=[
+    html.H1(children='Simulations Dashboard'),
+    dcc.Dropdown(
+        id='simulation-dropdown',
+        options=[{'label': sim, 'value': sim} for sim in simulations],
+        value=simulations[0]
+    ),
+    dcc.Graph(id='simulation-graph')
+])
+
+# Define the callback function to update the graph based on the dropdown selection
+@app.callback(Output('simulation-graph', 'figure'), [Input('simulation-dropdown', 'value')])
+def update_graph(selected_simulation):
+    filtered_df = distance_not_updated_simulations[distance_not_updated_simulations['Simulation'] == selected_simulation]
+    fig = {
+        'data': [{'x': filtered_df['TIME'], 'y': filtered_df[selected_simulation], 'type': 'line'}],
+        'layout': {'title': selected_simulation}
+    }
+    return fig
+
+# Run the app
+if __name__ == '__main__':
+    app.run_server(debug=True)
